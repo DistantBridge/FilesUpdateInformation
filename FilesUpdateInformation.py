@@ -219,6 +219,9 @@ with open(Log_txt_Path,'a',encoding='utf-8') as f:
     f.write("更新者:")
     f.write(Updater_Name)
     f.write('\n')
+    Log_Now_Time = str(datetime.datetime.now())
+    f.write(Log_Now_Time)
+    f.write('\n')
     for Changed_File in File_Change_Record_List:
         if Changed_File.Change_Type_Record == 1: # 删除
             Delete_Filename = csv_History_List[Changed_File.History_List_Number].File_Name
@@ -250,7 +253,7 @@ with open(Log_txt_Path,'a',encoding='utf-8') as f:
         elif Changed_File.Change_Type_Record == 4: # 移动
             Move_Filename = Now_File_List[Changed_File.Now_List_Number].File_Name
             Move_Path =  Now_File_List[Changed_File.Now_List_Number].File_Path
-            f.write("新建了文件：")
+            f.write("移动了文件：")
             f.write(Move_Filename)
             f.write("，文件路径为：")
             f.write(Move_Path)
