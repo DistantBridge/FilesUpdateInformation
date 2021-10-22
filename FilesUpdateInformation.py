@@ -182,30 +182,32 @@ def Comprehensive_Logical_Judgment_1():
                         if str(Now_File.Get_Creation_Time) == str(History_File_Same_Name.Get_Creation_Time) : # 同创建时间
                             Now_File_Change_Record_Temp.Change_Type_Record = 4 # 4 移动
                             Now_File_Change_Record_Temp.Now_List_Number = index_1 # 记录在当前文件树列表中的位置。
+                    elif str(Now_File.Get_Change_Time) != str(History_File_Same_Name.Get_Change_Time) : #不同修改时间
+                        if str(Now_File.Get_Creation_Time) != str(History_File_Same_Name.Get_Creation_Time) : #不同创建时间
+                             Now_File_Change_Record_Temp.Change_Type_Record = 2
 
         if Now_File_Change_Record_Temp.Change_Type_Record != 0 and Now_File_Change_Record_Temp.Change_Type_Record != -1 :
             File_Change_Record_List.append(Now_File_Change_Record_Temp) # 如果不是不变或者留空，则记录。
         
 #        Elements_Counter = Elements_Counter + 1 
 
-    # 旧文件
-    Elements_Counter = 0
-    for History_File in csv_History_List:
+
+        
+    #旧文件 逻辑1-2
+    for index_1,History_File in enumerate(csv_History_List):
         File_Change_Type = -1 
         History_File_Change_Record_2 = File_Change_Record(-1,-1,-1) # 新建一个实例。
-        Filename_Same_Flag = [] # 清空上一次的历史同名文件记录。
-        Histroy_Filename_3 = History_File.File_Name
+        File_Path_Same_Flag = [] # 清空上一次的历史同名文件记录。
+        Histroy_File_Path = History_File.File_Path
 
         for Now_File_3 in Now_File_List:
-            if Now_File_3.File_Name == Histroy_Filename_3:
-                Filename_Same_Flag.append(Elements_Counter)
+            if str(Histroy_File_Path) == str(Now_File_3.File_Path):
+                File_Path_Same_Flag.append(index_1)
         
-        if Filename_Same_Flag == []: # 若没有同名，则视为删除。
-            History_File_Change_Record_2 = File_Change_Record(1,-1,Elements_Counter)
-
+        if File_Path_Same_Flag == []: # 若没有同名，则视为删除或被移动。
+            History_File_Change_Record_2 = File_Change_Record(1,-1,index_1)
             File_Change_Record_List.append(History_File_Change_Record_2)
-        
-        Elements_Counter = Elements_Counter + 1 
+
     
 Comprehensive_Logical_Judgment_1()
 
@@ -226,7 +228,7 @@ with open(Log_txt_Path,'a',encoding='utf-8') as f:
         if Changed_File.Change_Type_Record == 1: # 删除
             Delete_Filename = csv_History_List[Changed_File.History_List_Number].File_Name
             Delete_Path = csv_History_List[Changed_File.History_List_Number].File_Path
-            f.write("删除了文件：")
+            f.write("被删除或移动至其他位置：")
             f.write(Delete_Filename)
             f.write("，文件路径为：")
             f.write(Delete_Path)
