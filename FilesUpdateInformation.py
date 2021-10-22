@@ -7,6 +7,7 @@ Files_Path = 'D:\Temp_Regular_Files\测试文件' #填入要查看更新信息�
 Log_Path = 'D:\Temp_Regular_Files\测试文件日志' #填入存放日志和文件树的文件夹名称。
 Updater_Name = 'QwQ' #进行更新操作的人的名称。
 Log_Filename = 'log.txt'
+Log_Logic_Judgment = '2' # 填入日志记录采取的逻辑方式。
 
 Chinese_Files_Path = Files_Path # unicode(Files_Path,'utf-8')
 Chinese_Log_Path = Log_Path # unicode(Log_Path,'utf-8')
@@ -24,9 +25,6 @@ class File_Tree():
 
 ##### 以上部分用于类的建立 #####
 
-
-
-#### 以上部分用于变量与类的定义 #####
 
 def Get_Filelist(Dir, Filelist):
 # 用递归的形式完成遍历。Dir路径，Filelist文件列表。
@@ -79,16 +77,14 @@ for e in Log_Files_List_Sorted:
     print(e.Get_Creation_Time)
     print(e.Get_Change_Time)
 
-if Log_Files_List_Sorted != []:
+if Log_Files_List_Sorted == []:
     #文件夹下没有历史文件树。
     Flag_File_Tree = 0
+    Empty_File_Creation_Path = os.path.join(Log_Path,'0.csv')
+    open(Empty_File_Creation_Path,'w')
 else:
     #存在历史文件树。
     Flag_File_Tree = 1
-
-##### 以上部分用于判断历史文件树是否存在，并选出最新（晚）的。 #####
-
-
 
 Elements_Number = 0
 for Elements in Log_Files_List_Sorted:
@@ -103,7 +99,12 @@ if Elements_Number != len(Log_Files_List_Sorted_Remove):
     Log_Files_List_Sorted_Remove.pop(Elements_Number)
 # 忽略列表中作为日志存在的log.txt文件
 
-Histroy_File_Path = Log_Files_List_Sorted_Remove[0].File_Path
+if Flag_File_Tree == 1:
+    Histroy_File_Path = Log_Files_List_Sorted_Remove[0].File_Path
+else:
+    Histroy_File_Path = Empty_File_Creation_Path
+
+##### 以上部分用于选出最新（晚）的历史文件树。 #####
 
 csv_History_List = []
 
@@ -208,8 +209,58 @@ def Comprehensive_Logical_Judgment_1():
             History_File_Change_Record_2 = File_Change_Record(1,-1,index_1)
             File_Change_Record_List.append(History_File_Change_Record_2)
 
-    
-Comprehensive_Logical_Judgment_1()
+def Comprehensive_Logical_Judgment_2():
+    global File_Change_Record_List
+    File_Change_Type = -1 
+    Filename_Same_Flag = [] # 记录所有同名文件在历史文件树中的位置。
+    File_Path_Same_Flag = [] # 记录所有同路径文件在历史文件树中的位置。
+
+    # 新文件 逻辑1-2
+    for index_1 , Now_File in enumerate(Now_File_List,start=0): 
+        Now_File_Change_Record_Temp = File_Change_Record(-1,-1,-1)
+        File_Path_Same_Flag = [] #清空上一次的历史同路径文件记录。
+
+        for index_2,History_File in enumerate(csv_History_List): # 检测同路径文件。
+            if Now_File.File_Path == History_File.File_Path:
+                File_Path_Same_Flag.append(index_2)
+        if File_Path_Same_Flag == []: # 如果没有相同文件路径则视为新建。
+            Now_File_Change_Record_Temp.Change_Type_Record = 2 # 2 新建
+            Now_File_Change_Record_Temp.Now_List_Number = index_1 # 记录在当前文件树列表中的位置。
+        elif len(File_Path_Same_Flag) >= 1 :
+            History_File_Same_Name = csv_History_List[File_Path_Same_Flag[0]]
+            if str(Now_File.Get_Change_Time) !=  str(History_File_Same_Name.Get_Change_Time):
+                Now_File_Change_Record_Temp.Change_Type_Record = 3 # 3 更新
+                Now_File_Change_Record_Temp.Now_List_Number = index_1 # 记录在当前文件树列表中的位置。
+        
+        if Now_File_Change_Record_Temp.Change_Type_Record != 0 and Now_File_Change_Record_Temp.Change_Type_Record != -1 :
+            File_Change_Record_List.append(Now_File_Change_Record_Temp) # 如果不是不变或者留空，则记录。
+
+
+    #旧文件 逻辑1-2
+    for index_1,History_File in enumerate(csv_History_List):
+        File_Change_Type = -1 
+        History_File_Change_Record_2 = File_Change_Record(-1,-1,-1) # 新建一个实例。
+        File_Path_Same_Flag = [] # 清空上一次的历史同路径文件记录。
+        Histroy_File_Path = History_File.File_Path
+
+        for Now_File_3 in Now_File_List:
+            if str(Histroy_File_Path) == str(Now_File_3.File_Path):
+                File_Path_Same_Flag.append(index_1)
+        
+        if File_Path_Same_Flag == []: # 若没有同名，则视为删除或被移动。
+            History_File_Change_Record_2 = File_Change_Record(1,-1,index_1)
+            File_Change_Record_List.append(History_File_Change_Record_2)
+
+
+
+
+
+
+if Log_Logic_Judgment == '1':
+    Comprehensive_Logical_Judgment_1()
+elif Log_Logic_Judgment == '2':
+    Comprehensive_Logical_Judgment_2()
+
 
 ##### 以上部分用于将历史文件树与当前文件树进行对比。寻找文件的更新动作。 #####
 
@@ -298,6 +349,7 @@ with open(New_File_Tree_Path,'a',encoding='utf-8',newline='') as f :
 
 ##### 以上部分用于创建本次的历史文件树 #####
 
+##### 以上部分用于删除辅助程序运行创建的"0.csv"文件
 
 
 
